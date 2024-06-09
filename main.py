@@ -1,8 +1,10 @@
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
-from langchain_communitBedrockEmbeddingsy.embeddings.bedrock import BedrockEmbeddings
+# from langchain_communitBedrockEmbeddingsy.embeddings.bedrock import BedrockEmbeddings
 from langchain_community.embeddings.ollama import OllamaEmbeddings
+# from get_embedding_function import get_embedding_function
+from langchain.vectorstores.chroma import Chroma
 
 def load_document():
     document_loader = PyPDFDirectoryLoader(".\\Data")
@@ -35,3 +37,10 @@ print(chuncks[0])
 def get_embedding_function():
     embeddings = OllamaEmbeddings(model="nomic-embed-text")
     return embeddings
+
+def add_to_chroma(chunks: list[Document]):
+    db = Chroma(
+        persist_directory=CHROMA_PATH, embedding_function=get_embedding_function()
+    )
+    db.add_documents(new_chunks,ids=new_chunks_ids)
+    db.persist
