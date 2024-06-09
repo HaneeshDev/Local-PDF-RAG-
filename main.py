@@ -1,13 +1,15 @@
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
-# from langchain_communitBedrockEmbeddingsy.embeddings.bedrock import BedrockEmbeddings
-from langchain_community.embeddings.ollama import OllamaEmbeddings
-# from get_embedding_function import get_embedding_function
-from langchain.vectorstores.chroma import Chroma
+from get_embedding_function import get_embedding_function
+from langchain_community.vectorstores import Chroma
+
+
+CHROMA_PATH = "chroma"
+DATA_PATH = ".\\Data"
 
 def load_document():
-    document_loader = PyPDFDirectoryLoader(".\\Data")
+    document_loader = PyPDFDirectoryLoader(CHROMA_PATH)
     return  document_loader.load()
 
 documents = load_document()
@@ -22,21 +24,10 @@ def split_document(documents: list[Document]):
     )
     return test_splitter.split_documents(documents)
 
-chuncks = split_document(documents)
-print(chuncks[0])
+chunks = split_document(documents)
+# print(chunks[0])
 
 
-
-# If you want to use AWS BedRock embedding
-# def get_embedding_function():
-#     embeddings = BedrockEmbeddings(
-#         credentials_profile_name="default", region_name="us-east-1"
-#     )
-#     return embeddings
-
-def get_embedding_function():
-    embeddings = OllamaEmbeddings(model="nomic-embed-text")
-    return embeddings
 
 def add_to_chroma(chunks: list[Document]):
     db = Chroma(
@@ -44,3 +35,18 @@ def add_to_chroma(chunks: list[Document]):
     )
     db.add_documents(new_chunks,ids=new_chunks_ids)
     db.persist
+
+last_page_id = None
+current_chunk_index = 0
+
+for chunk in chunks:
+    source = chunk.metadata.get("source")
+    page = chunk.metadata.get("page")
+    current_page_id = f"{source}:{page}"
+
+    if current_page_id == last_page_id:
+        current_chunk_index += 1
+    else:
+        current_chunk_index = 0
+    
+
